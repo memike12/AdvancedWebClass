@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<!-- A bare bones web page to start assignments with --> 
+
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <title>VOST Homepage</title>
+  <script type="text/javascript" >
+	<!--
+	
+	// actions basically is the workhorse of the DOM. This is where each
+	// 		action is taken based on what button was pressed and which crewmember
+	//		is selected.
+	function actions(currentNode){
+		var parent = currentNode.parentNode;
+		
+		// inserts another crewmember after the selected crew member
+		if (currentAction == "insert"){
+			 newThing = document.createElement("td");
+             parent.appendChild(newThing, currentNode);
+             newThing.innerHTML = "Crew Member";
+             newThing.onclick   = function() {actions(this)};
+		}
+		
+		// removes a crewmember
+		else if (currentAction == "delete"){
+			  parent.removeChild(currentNode);
+		}
+		
+		// edits the data of the crew member
+		else if (currentAction == "edit"){
+			currentNode.firstChild.nodeValue =
+			    window.prompt("Enter new text", currentNode.innerHTML);
+		}
+		
+		// this dosn't work but I wanted it to swap nodes with the next crew member
+		else if (currentAction == "move"){
+			var oldNode = currentNode.firstChild.nodeValue;
+			currentNode.firstChild.nodeValue = currentNode.secondChild.nodeValue;
+			currentNode.secondChild.nodeValue = oldNode;
+		}
+		
+		// this makes the selected crewmembers text size 20 pt font
+		else if (currentAction == "bigger"){
+			currentNode.style.fontSize = "20pt";
+		}
+		
+		// This makes the entire rows text size 20 pt font
+		else if (currentAction == "rowBigger"){
+			parent.style.fontSize = "20pt";
+		}
+		
+		// This displays the tag name associated with the selected crew member
+		else if (currentAction == "tagName"){
+		window.alert(" Tag Name is: " + currentNode.tagName);
+		}
+	}
+     // -->
+   </script>
+
+</head>
+
+<body>
+ <img src="Brave.jpg" alt="NA-44 Brave Underway">
+  <h1> Welcome to the Varsity Offshore Sailing Team's Homepage!</h1>
+
+  <p> The VOST team is the leader in small unit leadership training on the Yard and is 
+preparing leaders morally, mentally and physically for future Naval and Marine Corps 
+careers. 
+	</p>
+<p>Our different sail boats:</p>
+
+<!-- The table of data -->
+<table border="1">
+	<thead>
+		<tr>
+			<th>Name</th>
+			<th>Type</th>
+			<th>Crew</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td id="Ranger">Ranger</td>
+			<td>TP-52</td>
+			<td onclick="actions(this)">Barney</td>
+		</tr>
+		<tr>
+			<td id="Dolphin">Dolphin</td>
+			<td>J-105</td>
+			<td onclick="actions(this)">Tyler</td>
+		</tr>
+		<tr>
+			<td id="Alliance">Alliance</td>
+			<td>J-105</td>
+			<td onclick="actions(this)">Andrew</td>
+		</tr>
+		<tr>
+			<td id="Defiance">Defiance</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">Andy</td>
+		</tr>
+		<tr>
+			<td id="Gallant">Gallant</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">Tom</td>
+		</tr>
+		<tr>
+			<td id="Tenacious">Tenacious</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">Ben</td>
+		</tr>
+		<tr>
+			<td id="Brave">Brave</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">Brian</td>
+		</tr>
+		<tr>
+			<td id="Warrior">Warrior</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">Kya</td>
+		</tr>
+		<tr>
+			<td id="Honor">Honor</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">Rylan</td>
+		</tr>
+		<tr>
+			<td id="Courage">Courage</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">John</td>
+		</tr>
+		<tr>
+			<td id="Commitment">Commitment</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">Holland</td>
+		</tr>
+	</tbody>
+</table>
+
+	<!-- These buttons are all the options to select-->
+	<form onsubmit = "return false" action = "#"> <!--I have no idea what this does -->
+		<input type = "button" value = "Insert Crew" onclick = "currentAction='insert' ">
+		<input type = "button" value = "Delete Crew" onclick = "currentAction='delete' ">
+		<input type = "button" value = "Edit Crew Name" onclick = "currentAction='edit' ">
+		<input type = "button" value = "Dispaly Crew's Tag Name" onclick = "currentAction='tagName' ">
+		<input type = "button" value = "Make Crew Name Bigger" onclick = "currentAction='bigger' ">
+		<input type = "button" value = "Make Entire Row Bigger" onclick = "currentAction='rowBigger' ">
+	</form>
+
+
+
+	
+  <!-- ***************************************************************
+       Below this point is text you should include on every page
+       *************************************************************** -->
+  
+  <p><br/><br/> </p>
+  <hr/>
+  <p>
+   	<script type = "text/javascript">
+	 document.write('<a href="http://intranet.cs.usna.edu:8888/?doc='+document.location+'">' +
+        '<img src="http://www.w3.org/html/logo/img/mark-word-icon.png"'+
+		'alt="Valid HTML 5!" height="50" width="50" />'+
+      '</a>');
+	</script>  
+    This page last modified 
+    <script type="text/javascript">
+      document.write(document.lastModified);
+    </script>
+  </p>
+  
+
+
+</body>
+
+</html>
+  

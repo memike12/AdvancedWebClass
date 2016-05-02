@@ -1,0 +1,7 @@
+body
+{
+background-color:grey;
+}
+#thumbs { position: relative; width: 198px; height: 198px; }
+div.thumb { float: left;  padding: 1px; width: 64px; height: 64px; }
+div.thumb img { border: 2px solid white; }

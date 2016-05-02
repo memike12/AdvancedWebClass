@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+
+<html>
+
+	<head>
+	<meta charset="utf-8" />
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<title>VOST Homepage</title>
+		<script type="text/javascript" src=" http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<!--<link rel="stylesheet" type="text/css" href="jquery.autocomplete.css"> -->
+		<script type="text/javascript" src="jquery.hoverpulse.js"></script>
+		<!--<script type="text/javascript" src="jquery.autocomplete.css"></script> -->
+		
+		<script type="text/javascript" >
+		<!--
+		   var xhrActive = false;
+		   var currentAction ="";
+		
+		var xml = null;
+		var xsl = null;
+		
+		function insertXML() {
+			 // Make sure both AJAX requests have returned.
+			if( xml != null && xsl != null ) {
+				
+
+				// Transform the XML via the XSLT
+				var processor = new XSLTProcessor();
+				processor.importStylesheet(xsl);
+				var newDocument = processor.transformToDocument(xml);
+				if (newDocument == null) {
+					window.alert("Failed to convert the new document!");
+					return;
+				}
+
+				// Replace part of original document with the new content
+				var o = document.getElementById("crewInfo");
+				if (o == null) {
+					window.alert("Failed to find element for 'o'!");
+					return;
+				}
+
+				var n = newDocument.getElementById("crewInfo");
+				if (n == null) {
+					window.alert("Failed to find element for 'n'!");
+					return;
+				}
+				o.parentNode.replaceChild(n, o);
+				// Reset the variables to null.
+				xml = null;
+				xsl = null;
+			}
+		}
+
+		// actions basically is the workhorse of the DOM. This is where each
+		// 		action is taken based on what button was pressed and which crewmember
+		//		is selected.
+		function actions(currentNode){
+			var parent = currentNode.parentNode;
+			// inserts another crewmember after the selected crew member
+			if (currentAction == "insert"){
+				 newThing = document.createElement("td");
+				 parent.appendChild(newThing, currentNode);
+				 newThing.innerHTML = "Crew Member";
+				 newThing.onclick   = function() {actions(this)};
+			}
+			// removes a crewmember
+			else if (currentAction == "delete"){
+				  parent.removeChild(currentNode);
+			}
+			// edits the data of the crew member
+			else if (currentAction == "edit"){
+				currentNode.firstChild.nodeValue =
+					window.prompt("Enter new text", currentNode.innerHTML);
+			}
+			// this dosn't work but I wanted it to swap nodes with the next crew member
+			else if (currentAction == "move"){
+				var oldNode = currentNode.firstChild.nodeValue;
+				currentNode.firstChild.nodeValue = currentNode.secondChild.nodeValue;
+				currentNode.secondChild.nodeValue = oldNode;
+			}
+			// this makes the selected crewmembers text size 20 pt font
+			else if (currentAction == "bigger"){
+				currentNode.style.fontSize = "20pt";
+			}
+			// This makes the entire rows text size 20 pt font
+			else if (currentAction == "rowBigger"){
+				parent.style.fontSize = "20pt";
+			}
+			// This displays the tag name associated with the selected crew member
+			else if (currentAction == "tagName"){
+			window.alert(" Tag Name is: " + currentNode.tagName);
+			}
+		}
+		
+		function actionsDYN() {
+			actions(this);   
+		  }
+		
+		//Inserts a row into the table
+		function insertRow(elems) {
+			// First, make the new row
+			//Old JS way
+			var newTR = document.createElement("tr");
+			//var newTR = this.append('<tr></tr>');
+			
+			// Now add a child <td> for each argument
+			for (var i =0; i < elems.length; i++) {
+			   // Create the <td>
+			   newTD = document.createElement("td");
+			   newTD.innerHTML = elems[i];
+			   newTD.onclick   = actionsDYN;
+			   // Add it to the row
+			   newTR.appendChild(newTD);   
+			}
+			
+			// Finally, add the row to the table
+			//Old JS way
+			//var theTable = document.getElementById("mytable");
+			//theTable.appendChild(newTR);		
+			var theTable = $("#mytable");
+			theTable.append(newTR)
+		  }
+		 
+		//Inserts all the first and last names into a table		 
+		function insertAllRow(elems) {
+			// First, make the new row
+			var newTR = document.createElement("tr");		
+			// Now add a child <td> for each argument
+			for (var i =0; i < elems.length; i++) {
+			   // Create the <td>
+			   newTD = document.createElement("td");
+			   newTD.innerHTML = elems[i];
+			   newTD.onclick   = actionsDYN;
+			   // Add it to the row
+			   newTR.appendChild(newTD);   
+			}
+			
+			// Finally, add the row to the table
+			//Old JS way
+			//var theTable = document.getElementById("member");\
+			//theTable.appendChild(newTR);	
+			var theTable = $("#member");
+			theTable.append(newTR);
+		}
+		 
+		//This will return all the fist and last names
+		function SymHandleQuery() {
+			xhr = window.ActiveXObject 
+                    ? new ActiveXObject("Microsoft.XMLHTTP")
+                    : new XMLHttpRequest();
+			// Get data from server        
+			xhr.open("GET", "getListOfFirstNames.pl", false);
+			xhr.send(null);  // GET, so no "data" part
+
+			// Deal with results        
+			if (xhr.status != 200) {
+				alert("Error contacting server! Status: "+xhr.status);        
+			}
+			else {   
+
+				//JS will now make a results box
+				$('#allTeam').empty();
+				$('#allTeam').append("<table border=\"1\" id=\"mytable\"><thead><tr><th>First Name</th><th>Last Name</th></tr></thead><tbody></tbody></table>");
+				var root  = xhr.responseXML.documentElement;  // Returns DOM root element
+				var crewlist = root.childNodes;
+			  
+				// Get each child and add it to an array
+			  
+				for (var i=0; i<crewlist.length; i++) {
+				  
+					//alert(crewlist[i].nodeName);  // useful for seeing what the nodes are
+					if (crewlist[i].nodeType == 1){  // type 1 is an ELEMENT   
+					var crewElem = []; //I make an array of elements to load in the row
+					for (var x=0; x<crewlist[i].childNodes.length; x++)
+						{
+						if( crewlist[i].childNodes[x].nodeType == 1) 
+						//crewlist[i] is the crew, childNode is the info, I want the actual element
+							{
+							var oneElem = crewlist[i].childNodes[x].childNodes[0].nodeValue;
+							//This finds the actual information and puts it into oneElem
+							crewElem[crewElem.length] = oneElem; // add to array
+							}			 
+						}
+					//This calls insert Row to actually append the table
+					insertRow(crewElem); 	
+					}
+				}   
+				xhrActive = false;
+			}
+		}
+		
+		//This adds data to the DB
+		function inputAction() {	
+			fname = $("#firstname").val();
+			lname = $("#lastname").val();
+			boat = $("#boat").val();
+			pos = $("#position").val();
+			hs = $("#homestate").val();
+			urlString = "fname="+fname+"&lname="+lname+"&boat="+boat+"&position="+pos+"&homestate="+hs;	
+			if (fname && lname && boat && pos && hs) {
+			//Set up the ajax settings
+				var ajaxSettings = {
+					type: "POST",
+					url: "addCrewMemberInfo.pl",
+					data: urlString,
+					//success: function(data) {transform (data, '1_rss.xls'}  
+					error: function(xhr, status, error) {alert("error: " + error);}
+				};	
+				//make the call
+				$.ajax(ajaxSettings);
+			}
+			else{
+				alert("Please fill out all boxes!");
+			}
+			alert("Crew added, Thank you.");
+			return false;  // false prevents the form from actually submitting          
+			}
+		  
+		// Makes an a-synchronous call to server   
+		  function handleQuery() {
+			$('#searchReturn').empty();
+			$('#searchReturn').append("<table border=\"1\" id=\"member\"><thead><tr><th>First Name</th><th>Last Name</th><th>Boat</th><th>Position</th><th>Home State</th></tr></thead><tbody></tbody></table>");
+			
+			// Setup Ajax settings for the request
+			var search = document.getElementById("fname").value;
+			var urlString = "fname="+search;
+			var ajaxSettings = {
+				type: "GET",
+				url: "getCrewMemberInfo.pl",
+				data: urlString, //This needs to be changed to urlString
+				success: handleResponse,
+				error: function(xhr, status, error) {alert("error: " + error); }
+			};
+			
+			//Actually makes the Ajax call
+			$.ajax(ajaxSettings);
+			return false; 
+		  }
+		
+		// Makes an a-synchronous call to server   
+		function handleQueryForCrew() {
+			// Setup Ajax settings for the request
+			var ajaxSettings = {
+				type: "POST",
+				url: "getData.pl",
+				data: "", //This needs to be changed to urlString
+				success: function(data) {transform(data,"1_rss.xsl");} ,
+				error: function(xhr, status, error) {alert("error: " + error); }
+			};		
+			//Actually makes the Ajax call
+			$.ajax(ajaxSettings);
+			return false; 
+		}
+		 
+		function generateWeather(){
+			var zip = $("#zipcode").val();
+			var url = "http://api.worldweatheronline.com/free/v1/weather.ashx?q=" + zip +" &format=xml&num_of_days=3&includelocation=yes&key=53q43cv37jjetwjjf4nsbbac" ;
+			
+			
+			
+		function transform(data, xslFileName) {
+			xml = data;
+			$.get(xslFileName, function(data) { xsl = data; insertXML(); });
+		}
+  
+		// Parse an XML response and use to insert new row into table
+		function handleResponse(resp) {
+			var root  = resp.documentElement;  // Returns DOM root element
+			var crewlist = root.childNodes;
+			  
+			  // Get each child and add it to an array
+			  
+			  for (var i=0; i<crewlist.length; i++) {
+				  
+				 //alert(crewlist[i].nodeName);  // useful for seeing what the nodes are
+				if (crewlist[i].nodeType == 1){  // type 1 is an ELEMENT   
+				   var crewElem = []; //I make an array of elements to load in the row
+				   for (var x=0; x<crewlist[i].childNodes.length; x++)
+					{
+					if( crewlist[i].childNodes[x].nodeType == 1) 
+					//crewlist[i] is the crew, childNode is the info, I want the actual element
+						{
+						var oneElem = crewlist[i].childNodes[x].childNodes[0].nodeValue;
+						//This finds the actual information and puts it into oneElem
+						crewElem[crewElem.length] = oneElem; // add to array
+						}							 
+					}
+					//This calls insert Row to actually append the table
+					 insertAllRow(crewElem); 
+				}
+			  }   
+			  xhrActive = false;
+			}
+		$(window).load(function() {
+			$('p.msg').html('Mouse over images for pulse effect');
+		});
+		$(document).ready(function() {
+			$('div.thumb img').hoverpulse({
+				size: 200,
+				speed: 400
+			});
+		});
+		
+		 // -->
+		</script>
+
+</head>
+
+<body> 
+ <img src="Brave.jpg" alt="NA-44 Brave Underway">
+  <h1> Welcome to the Varsity Offshore Sailing Team's Homepage!</h1>
+
+  <p> The VOST team is the leader in small unit leadership training on the Yard and is 
+preparing leaders morally, mentally and physically for future Naval and Marine Corps 
+careers. 
+	</p>
+	
+	<div >
+		<h3>Team Information: </h3>
+		<h1 onclick="handleQueryForCrew()" id="crewInfo"> When you click here, this element should be replaced by JS.</h1>
+    </div>
+	<p></p>
+	<div style="padding:0 20px 20px 20px">
+        <div id="thumbs">
+            <div class="thumb"><img src="images/aboveDefiance.jpg" alt="A view of Defiance from above" width="64" height="64" /></div>
+            <div class="thumb"><img src="images/behindDefiance.jpg" alt="A view from behind Defiance" width="64" height="64" /></div>
+            <div class="thumb"><img src="images/defianceSpin.jpg" alt="Defiance flying it's spin" width="64" height="64" /></div>
+            <div class="thumb"><img src="images/sunSet.jpg" alt="Defiance sailing into the sun set" width="64" height="64" /></div>
+			<div class="thumb"><img src="images/BowBarney.jpg" alt="MIDN 2/C Barney on the Bow" width="64" height="64" /></div> 
+			<div class="thumb"><img src="images/gallantInTheDistance.jpg" alt="Gallant flying it's battle flags" width="64" height="64" /></div> 
+			<div class="thumb"><img src="images/oxfordFlags.jpg" alt="The VOST boats flying colors in Oxford, MD" width="64" height="64" /></div> 
+			<div class="thumb"><img src="images/spinsInDistance.jpg" alt="Mac Cup downwind underway" width="64" height="64" /></div> 
+			<div class="thumb"><img src="images/spinsMacCup.jpg" alt="Four boats compete for the win" width="64" height="64" /></div> 			
+          
+        </div>
+	</div>
+	
+<!--THis button calls the asymetrical ajax -->
+<form  onsubmit="return handleQuery()" >
+     <p>Search For Team Member : 
+      <input name="fname" id = "fname" placeholder="First Name Only" type="text" /> 
+       <input name="query_act" type="submit" value="Query" /> 
+     </p>
+  </form>     
+<form onsubmit = "return false" action = "#">
+<p id="searchReturn"></p>
+</form>
+  <input type = "button" value = "All Team members" onclick = "return SymHandleQuery()">
+
+ <p id="allTeam"></p>   
+
+
+ <form  onsubmit="return inputAction()" >
+     <p>Input a New Team Member: 
+      <input name="firstname" id="firstname" placeholder="First Name" type="text" /> 
+	  <input name="lastname" id="lastname" placeholder="Last Name" type="text" /> 
+	  <input name="boat" id="boat" placeholder="Boat" type="text" /> 
+	  <input name="positon" id="position" placeholder="Position" type="text" /> 
+	  <input name="homestate" id="homestate" placeholder="Home State" type="text" /> 
+       <input name="query_acts" type="submit" value="Submit" /> 
+     </p>
+  </form>
+
+<p>VOST sail boat crews racing this Spring and Summer:</p>
+
+<!-- The table of data -->
+<table border="1">
+	<thead>
+		<tr>
+			<th>Name</th>
+			<th>Type</th>
+			<th>Skipper</th>
+			<th>Executive Officer</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr id="Constellation">
+			<td>Constellation</td>
+			<td>TP-52</td>
+			<td onclick="actions(this)">Josh Forgacs</td>
+			<td onclick="actions(this)">Charlie Morris</td>
+		</tr>
+		<tr id="Dolphin">
+			<td>Dolphin</td>
+			<td>J-105</td>
+			<td onclick="actions(this)">Tyler Martenstein</td>
+			<td onclick="actions(this)">Dax Angsley</td>
+		</tr>
+		<tr id="Ranger">
+			<td>Ranger</td>
+			<td>Farr-440</td>
+			<td onclick="actions(this)">Brant Clemmens</td>
+			<td onclick="actions(this)">Trevor Vogle</td>
+		</tr>
+		<tr id="Defiance">
+			<td>Defiance</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">Padrig O'Brien</td>
+			<td onclick="actions(this)">Tom Wester</td>
+		</tr>
+		<tr id="Gallant">
+			<td>Gallant</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">Duncan Mamer</td>
+			<td onclick="actions(this)">Phil Youngberg</td>
+		</tr>
+		<tr id="Integrity" >
+			<td>Integrity</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">Holland McCabe</td>
+			<td onclick="actions(this)">Barney Schmidtke</td>
+		</tr>
+		<tr id="Swift" >
+			<td >Swift</td>
+			<td>NA-44 MK I</td>
+			<td onclick="actions(this)">Nick Tucker</td>
+			<td onclick="actions(this)">Alex Bledsoe</td>
+		</tr>
+	</tbody>
+</table>
+
+	<!-- These buttons are all the options to select-->
+	<form onsubmit = "return false" action = "#"> <!--I have no idea what this does -->
+		<input type = "button" value = "Insert Crew" onclick = "currentAction='insert' ">
+		<input type = "button" value = "Delete Crew" onclick = "currentAction='delete' ">
+		<input type = "button" value = "Edit Crew Name" onclick = "currentAction='edit' ">
+		<input type = "button" value = "Dispaly Crew's Tag Name" onclick = "currentAction='tagName' ">
+		<input type = "button" value = "Make Crew Name Bigger" onclick = "currentAction='bigger' ">
+		<input type = "button" value = "Make Entire Row Bigger" onclick = "currentAction='rowBigger' ">
+		
+	</form>
+
+
+
+	
+  <!-- ***************************************************************
+       Below this point is text you should include on every page
+       *************************************************************** -->
+  
+  <p><br/><br/> </p>
+  <hr/>
+  <p>
+   	<script type = "text/javascript">
+	 document.write('<a href="http://intranet.cs.usna.edu:8888/?doc='+document.location+'">' +
+        '<img src="http://www.w3.org/html/logo/img/mark-word-icon.png"'+
+		'alt="Valid HTML 5!" height="50" width="50" />'+
+      '</a>');
+	</script>  
+    This page last modified 
+    <script type="text/javascript">
+      document.write(document.lastModified);
+    </script>
+  </p>
+  
+
+
+</body>
+
+</html>
+  

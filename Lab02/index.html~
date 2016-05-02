@@ -1,0 +1,370 @@
+	<!DOCTYPE html>
+
+	<!-- A bare bones web page to start assignments with --> 
+
+	<html>
+
+	<head>
+	  <meta charset="utf-8" />
+	  <link rel="stylesheet" type="text/css" href="style.css">
+	  <title>VOST Homepage</title>
+	  <script type="text/javascript" >
+		<!--
+		   var xhrActive = false;
+		// actions basically is the workhorse of the DOM. This is where each
+		// 		action is taken based on what button was pressed and which crewmember
+		//		is selected.
+		function actions(currentNode){
+			var parent = currentNode.parentNode;
+			
+			// inserts another crewmember after the selected crew member
+			if (currentAction == "insert"){
+				 newThing = document.createElement("td");
+				 parent.appendChild(newThing, currentNode);
+				 newThing.innerHTML = "Crew Member";
+				 newThing.onclick   = function() {actions(this)};
+			}
+			
+			// removes a crewmember
+			else if (currentAction == "delete"){
+				  parent.removeChild(currentNode);
+			}
+			
+			// edits the data of the crew member
+			else if (currentAction == "edit"){
+				currentNode.firstChild.nodeValue =
+					window.prompt("Enter new text", currentNode.innerHTML);
+			}
+			
+			// this dosn't work but I wanted it to swap nodes with the next crew member
+			else if (currentAction == "move"){
+				var oldNode = currentNode.firstChild.nodeValue;
+				currentNode.firstChild.nodeValue = currentNode.secondChild.nodeValue;
+				currentNode.secondChild.nodeValue = oldNode;
+			}
+			
+			// this makes the selected crewmembers text size 20 pt font
+			else if (currentAction == "bigger"){
+				currentNode.style.fontSize = "20pt";
+			}
+			
+			// This makes the entire rows text size 20 pt font
+			else if (currentAction == "rowBigger"){
+				parent.style.fontSize = "20pt";
+			}
+			
+			// This displays the tag name associated with the selected crew member
+			else if (currentAction == "tagName"){
+			window.alert(" Tag Name is: " + currentNode.tagName);
+			}
+		}
+		
+		function actionsDYN() {
+			actions(this);   
+		  }
+		
+		 function insertData(elems) {
+			// First, make the new row
+			alert("got here");
+			var newP = document.createElement("<ul>");
+			
+			// Now add a child <td> for each argument
+			for (var i =0; i < elems.length; i++) {
+			   // Create the <td>
+			   newP = document.createElement("<ul>");
+			   newP.innerHTML = elems[i];
+			   newP.onclick   = actionsDYN;
+
+			   // Add it to the row
+			   newP.appendChild(newP);   
+			}
+			
+			// Finally, add the row to the table
+			var theTable = document.getElementById("myParagraph");
+			theTable.appendChild(newP);
+			alert("reached end");
+		  }
+
+		
+		// Makes an a-synchronous call to server   
+		  function handleQuery() {
+			if (xhrActive) {
+				alert("Still busy, be patient!");
+				return false;   // ignore if busy already  
+			}
+			  
+			xhr = window.ActiveXObject 
+						? new ActiveXObject("Microsoft.XMLHTTP")
+						: new XMLHttpRequest();
+
+			// Start getting data from server        
+			xhr.open("GET", "crewList.xml", true);
+			xhr.onreadystatechange = handleResponse;
+			xhr.send(null);  // GET, so no "data" part
+
+			xhrActive = true;
+			return false;  // false prevents the form from actually submitting          
+		  }
+		  
+		  // Parse an XML response and use to insert new row into table
+		  function handleResponse() {
+			if (xhr.readyState != 4) {
+				//alert(" not finished yet")
+				return;   
+			}
+			  
+			// Deal with results        
+			if (xhr.status != 200) {
+			  alert("Error with results! Status code: "+xhr.status);        
+			}
+			else {        
+			  // Use DOM to get data from the XML response
+				var root  = xhr.responseXML.documentElement;  // Returns DOM root element
+			  var crewlist = root.childNodes
+			  
+			  // Get each child and add it to an array
+			  var elems = []; // empty starting array
+			  for (var i=0; i<crewlist.length; i++) {
+				  
+				 alert(crewlist[i].nodeName);  // useful for seeing what the nodes are
+				if (crewlist[i].nodeType == 1){  // type 1 is an ELEMENT   
+				   var crewElem = [];
+				   for (var x=0; x<crewlist[i].childNodes.length; x++)
+					{
+						if( crewlist[i].childNodes[x].nodeType == 1)
+							{
+							var oneElem = crewlist[i].childNodes[x].nodeValue;
+							crewElem[crewElem.length] = oneElem; // add to array
+						}
+					}
+				}
+			  }   
+			  
+			  // Make new data with this data
+			  insertData(crewElem);   
+
+			  xhrActive = false;
+			}
+		  }    
+
+
+		
+		 // -->
+	   </script>
+
+</head>
+
+<body>
+ <img src="Brave.jpg" alt="NA-44 Brave Underway">
+  <h1> Welcome to the Varsity Offshore Sailing Team's Homepage!</h1>
+
+  <p> The VOST team is the leader in small unit leadership training on the Yard and is 
+preparing leaders morally, mentally and physically for future Naval and Marine Corps 
+careers. 
+	</p>
+	
+
+<form method="get" action="" onsubmit="return handleQuery()">
+     <p>Search Team Member: 
+       <input name="query_str" type="text" />
+       <input name="query_act" type="submit" value="Query" />
+     </p>
+  </form>     
+
+<p id="myParagraph">	
+<p>Our different sail boats:</p>
+
+<!-- The table of data -->
+<table border="1">
+	<thead>
+		<tr>
+			<th>Name</th>
+			<th>Type</th>
+			<th>Skipper</th>
+			<th>Executive Officer</th>
+			<th>Crew</th>
+			<th> </th>
+			<th> </th>
+			<th> </th>
+			<th> </th>
+			<th> </th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr id="Constellation">
+			<td>Constellation</td>
+			<td>TP-52</td>
+			<td onclick="actions(this)">Josh Forgacs</td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+		</tr>
+		<tr id="Dolphin">
+			<td>Dolphin</td>
+			<td>J-105</td>
+			<td onclick="actions(this)">Tyler</td>
+			<td onclick="actions(this)">Dax Angsley</td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+		</tr>
+		<tr id="Ranger">
+			<td>Ranger</td>
+			<td>Farr-440</td>
+			<td onclick="actions(this)">Brant Clemmens</td>
+			<td onclick="actions(this)">Trevor Vogle</td>
+			<td onclick="actions(this)">Matthew Finley</td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+		</tr>
+		<tr id="Alliance">
+			<td>Alliance</td>
+			<td>J-105</td>
+			<td onclick="actions(this)">Andrew</td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+		</tr>
+		<tr id="Defiance">
+			<td>Defiance</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">Andy</td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+		</tr>
+		<tr id="Gallant">
+			<td>Gallant</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">Tom</td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+		</tr>
+		<tr id="Tenacious" >
+			<td>Tenacious</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">Ben</td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+		</tr>
+		<tr id="Brave" >
+			<td>Brave</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">Brian</td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+		</tr>
+		<tr id="Warrior" >
+			<td>Warrior</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">Kya</td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+			<td onclick="actions(this)"> </td>
+		</tr>
+		<tr id="Swift" >
+			<td >Swift</td>
+			<td>NA-44 MK I</td>
+			<td onclick="actions(this)">Nick Tucker</td>
+			<td onclick="actions(this)">Alex Blodsoe</td>
+			<td onclick="actions(this)">Michael Moore</td>
+			<td onclick="actions(this)">Kyle Briggs</td>
+			<td onclick="actions(this)">Ethan</td>
+			<td onclick="actions(this)">James</td>
+			<td onclick="actions(this)">Timothy</td>
+			<td onclick="actions(this)">Shannon</td>
+		</tr>
+		<!--<tr>
+			<td id="Honor">Honor</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">Rylan</td>
+		</tr>
+		<tr>
+			<td id="Courage">Courage</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">John</td>
+		</tr>
+		<tr>
+			<td id="Commitment">Commitment</td>
+			<td>NA-44 MK II</td>
+			<td onclick="actions(this)">Holland</td>
+		</tr> -->
+	</tbody>
+</table>
+
+	<!-- These buttons are all the options to select-->
+	<form onsubmit = "return false" action = "#"> <!--I have no idea what this does -->
+		<input type = "button" value = "Insert Crew" onclick = "currentAction='insert' ">
+		<input type = "button" value = "Delete Crew" onclick = "currentAction='delete' ">
+		<input type = "button" value = "Edit Crew Name" onclick = "currentAction='edit' ">
+		<input type = "button" value = "Dispaly Crew's Tag Name" onclick = "currentAction='tagName' ">
+		<input type = "button" value = "Make Crew Name Bigger" onclick = "currentAction='bigger' ">
+		<input type = "button" value = "Make Entire Row Bigger" onclick = "currentAction='rowBigger' ">
+		
+	</form>
+
+
+
+	
+  <!-- ***************************************************************
+       Below this point is text you should include on every page
+       *************************************************************** -->
+  
+  <p><br/><br/> </p>
+  <hr/>
+  <p>
+   	<script type = "text/javascript">
+	 document.write('<a href="http://intranet.cs.usna.edu:8888/?doc='+document.location+'">' +
+        '<img src="http://www.w3.org/html/logo/img/mark-word-icon.png"'+
+		'alt="Valid HTML 5!" height="50" width="50" />'+
+      '</a>');
+	</script>  
+    This page last modified 
+    <script type="text/javascript">
+      document.write(document.lastModified);
+    </script>
+  </p>
+  
+
+
+</body>
+
+</html>
+  

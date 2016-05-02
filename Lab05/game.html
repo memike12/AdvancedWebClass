@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<!-- A bare bones web page to start assignments with --> 
+
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Angry Minions</title>
+
+  <style type="text/css">
+    /* Margin and padding on body element can introduce errors in determining
+       element position and are not recommended; we turn them off. */
+    body { margin:0; padding:0 }
+    .myblock { width:10px; height:10px; background-image:url("evilMinion.gif") }
+
+    /* size gets overridden later */
+    .launcher {width:150px; height:150px;background-image:url("Cannon.gif"); z-index: 8}
+    
+    /* size gets overridden later */
+    .missile   {width:15px; height:20px;background-image:url("Minion.gif") ; z-index: 9}
+    .invisible {width:10px; height:10px;background-color:white; z-index: 0}
+  </style>
+
+  <!-- Load JQuery -->
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+  <!-- Animation Code -->
+  <script type="text/javascript">
+    
+        // This function is periodicaly called by the timer.  It makes things move.
+        function mainLoop() {
+            moveBlock('block1', block1Pos, block1Size, block1Veloc);
+            moveBlock('block2', block2Pos, block2Size, block2Veloc);
+
+	    if (missileVeloc != null) {
+                moveMinion('missile1', missilePos, missileSize, missileVeloc);   
+
+		// check for missile collission
+		checkMissileHit('missile1', missilePos, missileSize, block1Pos, block1Size, block1Veloc);
+		checkMissileHit('missile1', missilePos, missileSize, block2Pos, block2Size, block2Veloc);
+	    }
+        }
+
+        // constants
+        var HIT_LEFT    = 10;
+        var HIT_RIGHT   = 11;
+        var HIT_TOP     = 12;
+        var HIT_BOTTOM  = 13;
+
+	var score = 0;
+        
+        // (x,y) coordinates of the first evil minion
+        var block1Pos   = [200,200];  
+        var block1Size  = [40,31]
+        var block1Veloc = [-.5, 2];
+
+	// the second evil minion
+        var block2Pos   = [300,300];  
+        var block2Size  = [40,31]
+        var block2Veloc = [-.5, -1];
+        
+	// the game board
+        var bigdivPos  = [100,100];
+        var bigdivSize = [898,644]
+        
+	// minion cannon
+        var launcherPos  = [0,600];
+        var launcherSize = [ 150, 100]
+
+	// a minion.  Put off board initially
+	var offBoardPos  = [800, 0];
+        var missilePos   = offBoardPos;
+        var missileSize  = [50,50];
+        var missileVeloc = null;
+
+        // Move the block by a little bit
+        function moveBlock(name, pos, size ,veloc) {
+	  // Set the block's current position.
+          pos[0] = pos[0] + veloc[0];
+          pos[1] = pos[1] + veloc[1];
+		  veloc[0] = veloc[0] - .003;
+	  // Move the block to its new position.
+	  $("#"+name).offset({ left: pos[0], top: pos[1] });
+
+          keepItemInsideBox(bigdivPos, bigdivSize, pos, size, veloc);
+        }	
+		
+		function moveMinion(name, pos, size ,veloc) {
+	  // Set the block's current position.
+			veloc[1] = veloc[1] + .2;
+			
+          pos[0] = pos[0] + veloc[0] * 2;
+          pos[1] = pos[1] + veloc[1];
+	  // Move the block to its new position.
+	  $("#"+name).offset({ left: pos[0], top: pos[1] });
+
+          keepItemInsideBox(bigdivPos, bigdivSize, pos, size, veloc);
+        }	
+		
+        // Do necessary setup on first load
+    function init() {
+	  // Save the main container's rendered position on the window.
+	  var offset = $('#bigdiv').offset();
+	  bigdivPos[0] = offset.left;
+	  bigdivPos[1] = offset.top;
+
+          // Call main loop every 25 milliseconds
+          setInterval("mainLoop()", 25);
+
+          // On every click, call the fire function    
+	  $(document).click(fireAtClick);
+
+          // On every key press...
+	  //$(document).keypress(handleKeypress);
+
+	  // Create the blocks
+	  createDiv(block1Pos, block1Size, "myblock", "block1");
+	  createDiv(block2Pos, block2Size, "myblock", "block2");
+	
+	  // Create the missile launcher
+	  createDiv(launcherPos, launcherSize, "launcher", "launcher");	    
+
+	  // missile initially invisible
+	  createDiv (missilePos, missileSize,  "invisible", "missile1");
+        }
+
+	// Check for a missile hit.  If hit, act like block destroyed, get rid of missile
+	function checkMissileHit(missileId, missilePos, missileSize, blockPos, blockSize, blockVeloc) {
+		  if (!didSpheresHit(missilePos, missileSize, blockPos, blockSize)) {
+			return;
+		  }
+
+		  // we did have a hit.  Make the missile invisible and immobile
+		  $('#missile1').addClass("invisible");
+		  $('#missile1').removeClass("missile");
+		  missileVeloc = null;	  
+		  missilePos   = offBoardPos;
+		  $('#'+missileId).offset({ left: missilePos[0], top: missilePos[1] });
+		  incrementScore(1);	  
+
+			// Randomize location of new block (somewhere inside bigdiv)
+		blockPos[0] = bigdivPos[0] + Math.random() * bigdivSize[0];
+		blockPos[1] = bigdivPos[1] + Math.random() * bigdivSize[1];
+		blocVeloc[0] = blocVeloc[0] - .2;
+
+	}
+
+		
+	//This increases the score when ever you get a minion
+	function incrementScore(val) {
+	  score = score + val;
+	  $('#scorebox').text("Bad Minions Got: "+score);
+	}
+	
+	//This resets the score when a minion reaches the left side
+	function resetScore() {
+	  score = 0;
+	  $('#scorebox').text("Bad Minions Got: "+score);
+	}
+
+	// Check if the spheres with given pos and sizes are touching.  
+	// Assumes width equal to height
+	function didSpheresHit(pos1, size1, pos2, size2) {
+  	  // We have positions of top left corners.  Convert to get center positions
+	  var cx1 = pos1[0] + size1[0] / 2;
+	  var cx2 = pos2[0] + size2[0] / 2;
+	  var cy1 = pos1[1] + size1[1] / 2;
+	  var cy2 = pos2[1] + size2[1] / 2;
+
+	  // find distance between centers
+	  var dx = cx1 - cx2;
+	  var dy = cy1 - cy2;
+	  dist = Math.sqrt(dx*dx + dy*dy);
+
+	  // size tracks the width, so radius would be half of that.
+	  // So they touch if dist less than (widhth1 + width2) / 2
+	  if (dist < ( (size1[0]  + size2[0] ) / 2) ) {
+	    return true; 
+	  }
+	  return false;
+	}
+
+	// Create a div with the given pos, size, and class
+	function createDiv(pos, size, myclass, myid) {
+	   // create basic div
+           var newobj = $("<div id='" + myid + "'> </div>");
+	   $('body').append(newobj);
+	   newobj.addClass(myclass).css("width",size[0]+"px").css("height",size[1]+"px");
+
+	   // move it to right place
+	   newobj.offset({ left: pos[0], top: pos[1] });
+	}
+
+        // When we click, fire a missle at that location
+        function fireAtClick(e) {            
+	    // calculate slope toward that spot
+	    var dx = e.pageX - launcherPos[0];
+	    var dy = e.pageY - launcherPos[1];
+	    
+	    // scale down by the overall distance.  not necc. the right math, but 
+	    // gets it moving in the right direction
+	    var dist = Math.sqrt(dx*dx + dy*dy);
+	    dx = 8 * dx / dist;
+	    dy = 15 * dy / dist;
+
+	    // Make coordinates for the missile
+	    missileVeloc = [ dx , dy ];  
+	    missilePos   = [ launcherPos[0], launcherPos[1] ]; // make sure get COPY of that array, not same one
+
+	    // Missile already created, but maybe invisible - this will make it visible.
+	    $('#missile1').addClass("missile"); 
+	    $('#missile1').removeClass("invisible"); 
+	}
+
+        // Checks to see if the block has hit the edge of the bigdiv.  If so, make it bounce off
+        // If we get outside the box, this will also force us to move back in.
+        function keepItemInsideBox(boxPos, boxSize, itemPos, itemSize, itemVeloc)  {
+
+            // Check to see if we hit a vertical edge 
+            var edgeHit = calcVerticalEdgeHit(boxPos, boxSize, itemPos, itemSize);            
+            if ( (edgeHit == HIT_LEFT) && (itemVeloc[0] < 0) ) {
+                // if too far left, make sure we go right
+                itemVeloc[0] *= -1;
+				alert("They got to your base. Game over. Reseting Score");
+				resetScore();
+            }
+            if ( (edgeHit == HIT_RIGHT) && (itemVeloc[0] > 0) ) {
+                // if too far right, make sure we go left
+                itemVeloc[0] *= -1;
+				$('#missile1').addClass("invisible");
+				$('#missile1').removeClass("missile");
+				missileVeloc = null;	  
+				missilePos   = offBoardPos;
+				$('#'+missileId).offset({ left: missilePos[0], top: missilePos[1] });
+				
+            }
+            
+            // Check to see if we hit a vertical edge 
+            var edgeHit = calcHorizontalEdgeHit(bigdivPos, bigdivSize, itemPos, itemSize);            
+            if ( (edgeHit == HIT_TOP) && (itemVeloc[1] < 0) ) {
+                // if too far up, make sure we go down
+                itemVeloc[1] *= -1;
+            }
+            if ( (edgeHit == HIT_BOTTOM) && (itemVeloc[1] > 0) ) {
+                // if too far down, make sure we go up
+                itemVeloc[1] *= -1;
+            }
+            
+        }
+        
+        // See if the item hit a vertical edge by going too far left or right.
+        // NOTE: we assume it was basically inside the box to begin with
+        function calcVerticalEdgeHit(boxPos, boxSize, itemPos, itemSize) {
+            // check for hit on left side
+            var boxLeft   = boxPos[0];
+            var boxRight  = boxPos[0] + boxSize[0];
+            var itemLeft  = itemPos[0];
+            var itemRight = itemPos[0] + itemSize[0];
+            
+            if (itemLeft < boxLeft) 
+                return HIT_LEFT;
+            else if (itemRight > boxRight)
+                return HIT_RIGHT;
+        }
+        
+        // See if the item hit a horizontal edge by going too far up or down.
+        // NOTE: we assume it was basically inside the box to begin with
+        function calcHorizontalEdgeHit(boxPos, boxSize, itemPos, itemSize) {
+            // check for hit on left side
+            var boxTop   = boxPos[1];
+            var boxBot   = boxPos[1] + boxSize[1];
+            var itemTop  = itemPos[1];
+            var itemBot  = itemPos[1] + itemSize[1];
+            
+            if (itemTop < boxTop) 
+                return HIT_TOP;
+            else if (itemBot > boxBot)
+                return HIT_BOTTOM;
+        }
+
+	// When the document loads, startup the code!
+	$(document).ready(init);
+
+  </script>
+</head>
+
+<body>
+
+  <h1>Get those evil Minions!!!</h1>
+  
+  <p> Evil minions are invading and it is your job to make sure they don't get to the left side of the screen.</p>
+
+  <div id="scorebox">Bad Minions Got: 0</div>
+
+  <div id="bigdiv" onmousemove= "rotateOnMouse(event, event)" style="width:898px; height:644px; background-image:url('gameBackground.jpg'); z-index:0">
+    </div>
+  
+  		  <!-- ***************************************************************
+			   Below this point is text you should include on every page
+			   *************************************************************** -->
+		  
+		  <p><br/><br/> </p>
+		  <hr/>
+		  <p>
+   	<script type = "text/javascript">
+	 document.write('<a href="http://intranet.cs.usna.edu:8888/?doc='+document.location+'">' +
+        '<img src="http://www.w3.org/html/logo/img/mark-word-icon.png"'+
+		'alt="Valid HTML 5!" height="50" width="50" />'+
+      '</a>');
+	</script>  
+    This page last modified 
+    <script type="text/javascript">
+      document.write(document.lastModified);
+    </script>
+  </p>
+</body>
+</html>
+
